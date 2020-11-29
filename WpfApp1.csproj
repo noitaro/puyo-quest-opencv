@@ -8,6 +8,9 @@
 
   <ItemGroup>
     <None Remove="Screenshot_20201127-203802.png" />
+    <None Remove="Screenshot_20201129-191348.png" />
+    <None Remove="Screenshot_20201129-191422.png" />
+    <None Remove="Screenshot_20201129-191506.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -19,6 +22,9 @@
 
   <ItemGroup>
     <Resource Include="Screenshot_20201127-203802.png" />
+    <Resource Include="Screenshot_20201129-191348.png" />
+    <Resource Include="Screenshot_20201129-191422.png" />
+    <Resource Include="Screenshot_20201129-191506.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -65,6 +71,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="template\murasaki_puyo.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="template\murasaki_tama.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

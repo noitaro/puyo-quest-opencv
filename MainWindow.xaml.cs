@@ -56,18 +56,25 @@ namespace WpfApp1
             (PuyoEnum.Heart, "ha-to.png", string.Empty)
         };
 
-        private static PuyoEnum GetPuyo(PuyoEnum[,] array, int x, int y)
+        private readonly List<(int x, int y)> SerchList = new() { (0, -1), (0, 1), (-1, 0), (1, 0) }; // 上下左右
+
+        private static PuyoEnum GetPuyo(PuyoEnum[,] array, (int x, int y) position)
         {
             // 配列範囲外の場合、Noneを戻す
-            if (y < 0 || array.GetLength(0) <= y) return PuyoEnum.None;
-            if (x < 0 || array.GetLength(1) <= x) return PuyoEnum.None;
+            if (position.y < 0 || array.GetLength(0) <= position.y) return PuyoEnum.None;
+            if (position.x < 0 || array.GetLength(1) <= position.x) return PuyoEnum.None;
 
-            return array[y, x];
+            return array[position.y, position.x];
         }
 
-        private static void SetPuyo(PuyoEnum[,] array, int x, int y, PuyoEnum puyo)
+        private static void SetPuyo(PuyoEnum[,] array, (int x, int y) position, PuyoEnum puyo)
         {
-            array[y, x] = puyo;
+            array[position.y, position.x] = puyo;
+        }
+
+        private static T ArrayCopy<T>(T array)
+        {
+            return JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(array));
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -237,11 +244,11 @@ namespace WpfApp1
                 //for (int y = 0; y < ROWS; y++)
                 {
                     // 配列コピー
-                    var tmpHeadersArray = JsonConvert.DeserializeObject<PuyoEnum[,]>(JsonConvert.SerializeObject(headersArray));
-                    var tmpCellsArray = JsonConvert.DeserializeObject<PuyoEnum[,]>(JsonConvert.SerializeObject(cellsArray));
+                    var tmpHeadersArray = ArrayCopy(headersArray);
+                    var tmpCellsArray = ArrayCopy(cellsArray);
 
                     // ぷよ消し
-                    SetPuyo(tmpCellsArray, x, y, PuyoEnum.None);
+                    //SetPuyo(tmpCellsArray, (x, y), PuyoEnum.None);
 
                     // 上のぷよを下に落とす
                     setPuyoDrop(tmpHeadersArray, tmpCellsArray);
@@ -270,28 +277,28 @@ namespace WpfApp1
                 for (int y1 = ROWS - 1; y1 >= 0; y1--)
                 {
                     // 自分のマスにぷよがいるか？
-                    if (GetPuyo(tmpCellsArray, x, y1) != PuyoEnum.None) continue;
+                    if (GetPuyo(tmpCellsArray, (x, y1)) != PuyoEnum.None) continue;
 
                     if (y1 == 0)
                     {
                         // ヘッダー部のぷよを入れる
-                        SetPuyo(tmpCellsArray, x, y1, GetPuyo(tmpHeadersArray, x, 0));
-                        SetPuyo(tmpHeadersArray, x, 0, PuyoEnum.None);
+                        SetPuyo(tmpCellsArray, (x, y1), GetPuyo(tmpHeadersArray, (x, 0)));
+                        SetPuyo(tmpHeadersArray, (x, 0), PuyoEnum.None);
                     }
                     else
                     {
                         // 上のマスのぷよを入れる
-                        SetPuyo(tmpCellsArray, x, y1, GetPuyo(tmpCellsArray, x, y1 - 1));
-                        SetPuyo(tmpCellsArray, x, y1 - 1, PuyoEnum.None);
+                        SetPuyo(tmpCellsArray, (x, y1), GetPuyo(tmpCellsArray, (x, y1 - 1)));
+                        SetPuyo(tmpCellsArray, (x, y1 - 1), PuyoEnum.None);
                     }
 
                     // 落ちるところまで落とす
                     for (int y2 = y1 + 1; y2 < ROWS; y2++)
                     {
-                        if (GetPuyo(tmpCellsArray, x, y2) != PuyoEnum.None) break;
+                        if (GetPuyo(tmpCellsArray, (x, y2)) != PuyoEnum.None) break;
 
-                        SetPuyo(tmpCellsArray, x, y2, GetPuyo(tmpCellsArray, x, y2 - 1));
-                        SetPuyo(tmpCellsArray, x, y2 - 1, PuyoEnum.None);
+                        SetPuyo(tmpCellsArray, (x, y2), GetPuyo(tmpCellsArray, (x, y2 - 1)));
+                        SetPuyo(tmpCellsArray, (x, y2 - 1), PuyoEnum.None);
                     }
                 }
             }
@@ -306,11 +313,10 @@ namespace WpfApp1
                 for (int y = 0; y < ROWS; y++)
                 {
                     // 自分のマスにぷよがいるか？
-                    var puyo = GetPuyo(array, x, y);
-                    if (puyo == PuyoEnum.None) continue;
+                    if (GetPuyo(array, (x, y)) == PuyoEnum.None) continue;
 
                     // 4つ以上繋がったぷよを探す
-                    var result = SearchPuyoClear(1, array, new List<(int x, int y)>() { (x, y) });
+                    var searchedList = SearchPuyoClear(array, new List<(int x, int y)>() { (x, y) });
 
                 }
             }
@@ -318,27 +324,44 @@ namespace WpfApp1
             return score;
         }
 
-        private List<(int x, int y)> SearchPuyoClear(int depth, PuyoEnum[,] array, List<(int x, int y)> searchedList)
+        private List<(int x, int y)> SearchPuyoClear(PuyoEnum[,] array, List<(int x, int y)> searchedList)
         {
-            var serchList = new List<(int x, int y)>() { (0, -1), (0, 1), (-1, 0), (1, 0) }; // 上下左右
-            foreach ((var x, var y) in serchList)
+            // 配列コピー
+            var tmpSearchedList = ArrayCopy(searchedList);
+
+            foreach ((var x, var y) in SerchList)
             {
-                // 前回検索位置取得
-                var lastPosition = searchedList.Last();
-                // 初期ぷよ取得
-                var puyo = GetPuyo(array, lastPosition.x, lastPosition.y);
+                // 前回探索位置取得
+                var oldPosition = tmpSearchedList.Last();
+                // 今回探索位置取得
+                (int x, int y) nowPosition = (oldPosition.x + x, oldPosition.y + y);
+
+                // ぷよがあるか？
+                if (GetPuyo(array, nowPosition) == PuyoEnum.None) continue;
+                // 探索済みか？
+                if (tmpSearchedList.Any(i => i.x == nowPosition.x && i.y == nowPosition.y)) continue;
 
                 // 上下左右の同色ぷよを探す
-                if (GetPuyo(array, lastPosition.x + x, lastPosition.y + y) == puyo)
+                if (GetPuyo(array, oldPosition) == GetPuyo(array, nowPosition))
                 {
-                    // 同色の場合、再起処理
+                    // 同色の場合
+                    tmpSearchedList.Add(nowPosition);
 
-                }
-                else
-                {
+                    // 再起処理
+                    var result = SearchPuyoClear(array, tmpSearchedList);
+                    foreach (var item in result)
+                    {
+                        // 未探索の場合、追加
+                        if (!tmpSearchedList.Any(i => i.x == nowPosition.x && i.y == nowPosition.y)) tmpSearchedList.Add(item);
+                    }
 
+                   
                 }
             }
+
+            // 同色のぷよが見つからなかった場合、再起処理を抜ける
+            return tmpSearchedList;
         }
+
     }
 }

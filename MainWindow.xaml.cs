@@ -1,4 +1,4 @@
-﻿using OpenCvSharp;
+using OpenCvSharp;
 using OpenCvSharp.WpfExtensions;
 using System;
 using System.Collections.Generic;
@@ -34,18 +34,17 @@ namespace WpfApp1
             Heart
         }
 
-        private readonly Dictionary<PuyoEnum, Scalar> PuyoColors = new Dictionary<PuyoEnum, Scalar>()
+        private readonly Dictionary<PuyoEnum, Scalar> PuyoColors = new()
         {
-            {PuyoEnum.Red, Scalar.Red},
-            {PuyoEnum.Blue, Scalar.Blue},
-            {PuyoEnum.Yellow, Scalar.Yellow},
-            {PuyoEnum.Green, Scalar.Green},
-            {PuyoEnum.Purple, Scalar.Purple},
-            {PuyoEnum.Heart, Scalar.Pink}
+            { PuyoEnum.Red, Scalar.Red },
+            { PuyoEnum.Blue, Scalar.Blue },
+            { PuyoEnum.Yellow, Scalar.Yellow },
+            { PuyoEnum.Green, Scalar.Green },
+            { PuyoEnum.Purple, Scalar.Purple },
+            { PuyoEnum.Heart, Scalar.Pink }
         };
 
-        private readonly List<(PuyoEnum Puyo, string PuyoUri, string TamaUri)>
-            TemplateList = new List<(PuyoEnum, string, string)>()
+        private readonly List<(PuyoEnum Puyo, string PuyoUri, string TamaUri)> TemplateList = new()
         {
             (PuyoEnum.Red, "aka_puyo.png", "aka_tama.png"),
             (PuyoEnum.Blue, "ao_puyo.png", "ao_tama.png"),
@@ -143,11 +142,11 @@ namespace WpfApp1
                     Cv2.CvtColor(cellMat, cellMat, ColorConversionCodes.RGB2GRAY);
 
                     var tmpResult = new List<(PuyoEnum Puyo, double MaxVal)>();
-                    foreach (var template in TemplateList)
+                    foreach ((var puyo, var uri, _) in TemplateList)
                     {
                         var templateBitmapSource = new BitmapImage();
                         templateBitmapSource.BeginInit();
-                        templateBitmapSource.UriSource = new Uri($@"template/{template.PuyoUri}", UriKind.Relative);
+                        templateBitmapSource.UriSource = new Uri($@"template/{uri}", UriKind.Relative);
                         templateBitmapSource.EndInit();
                         var templateMat = BitmapSourceConverter.ToMat(templateBitmapSource);
 
@@ -161,7 +160,7 @@ namespace WpfApp1
 
                         Cv2.MinMaxLoc(resultMatch, out _, out double maxVal);
 
-                        tmpResult.Add((template.Puyo, maxVal));
+                        tmpResult.Add((puyo, maxVal));
                     }
 
                     var result = tmpResult.OrderByDescending(x => x.MaxVal).First();
@@ -188,13 +187,13 @@ namespace WpfApp1
 
                 // 色に基づく物体検出
                 var tmpResult = new List<(PuyoEnum Puyo, double MaxVal)>();
-                foreach (var template in TemplateList)
+                foreach ((var puyo, _, var uri) in TemplateList)
                 {
-                    if (template.TamaUri == string.Empty) continue;
+                    if (uri == string.Empty) continue;
 
                     var templateBitmapSource = new BitmapImage();
                     templateBitmapSource.BeginInit();
-                    templateBitmapSource.UriSource = new Uri($@"template/{template.TamaUri}", UriKind.Relative);
+                    templateBitmapSource.UriSource = new Uri($@"template/{uri}", UriKind.Relative);
                     templateBitmapSource.EndInit();
                     var templateMat = BitmapSourceConverter.ToMat(templateBitmapSource);
 
@@ -208,7 +207,7 @@ namespace WpfApp1
 
                     Cv2.MinMaxLoc(resultMatch, out _, out double maxVal);
 
-                    tmpResult.Add((template.Puyo, maxVal));
+                    tmpResult.Add((puyo, maxVal));
                 }
 
                 var result = tmpResult.OrderByDescending(x => x.MaxVal).First();

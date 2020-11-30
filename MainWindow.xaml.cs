@@ -26,18 +26,33 @@ namespace WpfApp1
 
         enum PuyoEnum
         {
-
+            Red,
+            Blue,
+            Yellow,
+            Green,
+            Purple,
+            Heart
         }
 
-        private readonly List<(string PuyoColor, string PuyoUri, string TamaUri, Scalar ScalarColor)>
-            TemplateList = new List<(string, string, string, Scalar)>()
+        private readonly Dictionary<PuyoEnum, Scalar> PuyoColors = new Dictionary<PuyoEnum, Scalar>()
         {
-            ("Red", "aka_puyo.png", "aka_tama.png", Scalar.Red),
-            ("Blue", "ao_puyo.png", "ao_tama.png", Scalar.Blue),
-            ("Yellow", "ki-ro_puyo.png", "ki-ro_tama.png", Scalar.Yellow),
-            ("Green", "midori_puyo.png", "midori_tama.png", Scalar.Green),
-            ("Purple", "murasaki_puyo.png", "murasaki_tama.png", Scalar.Purple),
-            ("Heart", "ha-to.png", string.Empty, Scalar.Pink)
+            {PuyoEnum.Red, Scalar.Red},
+            {PuyoEnum.Blue, Scalar.Blue},
+            {PuyoEnum.Yellow, Scalar.Yellow},
+            {PuyoEnum.Green, Scalar.Green},
+            {PuyoEnum.Purple, Scalar.Purple},
+            {PuyoEnum.Heart, Scalar.Pink}
+        };
+
+        private readonly List<(PuyoEnum Puyo, string PuyoUri, string TamaUri)>
+            TemplateList = new List<(PuyoEnum, string, string)>()
+        {
+            (PuyoEnum.Red, "aka_puyo.png", "aka_tama.png"),
+            (PuyoEnum.Blue, "ao_puyo.png", "ao_tama.png"),
+            (PuyoEnum.Yellow, "ki-ro_puyo.png", "ki-ro_tama.png"),
+            (PuyoEnum.Green, "midori_puyo.png", "midori_tama.png"),
+            (PuyoEnum.Purple, "murasaki_puyo.png", "murasaki_tama.png"),
+            (PuyoEnum.Heart, "ha-to.png", string.Empty)
         };
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -45,9 +60,17 @@ namespace WpfApp1
             var puyos = getPuyos();
 
 
+            var array2Db = new Scalar[ROWS, COLS] {
+                { Scalar.Red, Scalar.Red, Scalar.Red, Scalar.Red, Scalar.Red, Scalar.Red, Scalar.Red, Scalar.Red },
+                { Scalar.Red, Scalar.Red, Scalar.Red, Scalar.Red, Scalar.Red, Scalar.Red, Scalar.Red, Scalar.Red },
+                { Scalar.Red, Scalar.Red, Scalar.Red, Scalar.Red, Scalar.Red, Scalar.Red, Scalar.Red, Scalar.Red },
+                { Scalar.Red, Scalar.Red, Scalar.Red, Scalar.Red, Scalar.Red, Scalar.Red, Scalar.Red, Scalar.Red },
+                { Scalar.Red, Scalar.Red, Scalar.Red, Scalar.Red, Scalar.Red, Scalar.Red, Scalar.Red, Scalar.Red },
+                { Scalar.Red, Scalar.Red, Scalar.Red, Scalar.Red, Scalar.Red, Scalar.Red, Scalar.Red, Scalar.Red }
+            };
         }
 
-        private (List<(int X, int Y, Scalar ScalarColor)> Headers, List<(int X, int Y, Scalar ScalarColor)> Cells) getPuyos()
+        private (PuyoEnum[,] HeadersArray, PuyoEnum[,] CellsArray) getPuyos()
         {
             // Image コントロールから画像データを BitmapSource 形式で取得する。
             var imageBitmapSource = (BitmapSource)image.Source;
@@ -61,12 +84,12 @@ namespace WpfApp1
 
             var cellWidth = cellsRect.Width / COLS; // 126
             var cellHeight = cellsRect.Height / ROWS; // 118
-            foreach ((var x, var y, var scalarColor) in cells)
+            foreach ((var x, var y, var puyo) in cells)
             {
                 Cv2.Rectangle(imageMat,
                     new Point(cellsRect.X + (x * cellWidth) + 5, cellsRect.Y + (y * cellHeight) + 5),
                     new Point(cellsRect.X + (x * cellWidth) + cellWidth - 5, cellsRect.Y + (y * cellHeight) + cellHeight - 5),
-                    scalarColor, 5, LineTypes.Link8, 0);
+                    PuyoColors[puyo], 5, LineTypes.Link8, 0);
             }
 
             var headersRect = new Int32Rect(35, 1022, 1009, 64);
@@ -77,21 +100,27 @@ namespace WpfApp1
             var imageBitmapSourceHeaders = new CroppedBitmap(imageBitmapSource, headersRect);
 
             var headers = getHeaders(imageBitmapSourceHeaders, headerWidth, headerHeight);
-            foreach ((var x, var y, var scalarColor) in headers)
+            foreach ((var x, var y, var puyo) in headers)
             {
                 Cv2.Rectangle(imageMat,
                     new Point(headersRect.X + (x * headerWidth) + 5, headersRect.Y + (y * headerHeight) + 5),
                     new Point(headersRect.X + (x * headerWidth) + headerWidth - 5, headersRect.Y + (y * headerHeight) + headerHeight - 5),
-                    scalarColor, 5, LineTypes.Link8, 0);
+                    PuyoColors[puyo], 5, LineTypes.Link8, 0);
             }
 
             // Image コントロールに BitmapSource 形式の画像データを設定する。
             image.Source = BitmapSourceConverter.ToBitmapSource(imageMat);
 
-            return (headers, cells);
+            // Array変換
+            var headersArray = new PuyoEnum[1, COLS];
+            var cellsArray = new PuyoEnum[ROWS, COLS];
+            foreach ((var x, var y, var puyo) in headers) headersArray[y, x] = puyo;
+            foreach ((var x, var y, var puyo) in cells) cellsArray[y, x] = puyo;
+
+            return (headersArray, cellsArray);
         }
 
-        private List<(int X, int Y, Scalar ScalarColor)> getCells(BitmapSource imageBitmapSource, Int32Rect cellsRect)
+        private List<(int X, int Y, PuyoEnum Puyo)> getCells(BitmapSource imageBitmapSource, Int32Rect cellsRect)
         {
             var cellWidth = cellsRect.Width / COLS; // 126
             var cellHeight = cellsRect.Height / ROWS; // 118
@@ -99,7 +128,7 @@ namespace WpfApp1
             // トリミング
             var imageBitmapSourceCells = new CroppedBitmap(imageBitmapSource, cellsRect);
 
-            var cells = new List<(int X, int Y, Scalar ScalarColor)>();
+            var cells = new List<(int X, int Y, PuyoEnum Puyo)>();
             for (int x = 0; x < COLS; x++)
             {
                 for (int y = 0; y < ROWS; y++)
@@ -113,7 +142,7 @@ namespace WpfApp1
                     // グレースケール化
                     Cv2.CvtColor(cellMat, cellMat, ColorConversionCodes.RGB2GRAY);
 
-                    var tmpResult = new List<(Scalar ScalarColor, double MaxVal)>();
+                    var tmpResult = new List<(PuyoEnum Puyo, double MaxVal)>();
                     foreach (var template in TemplateList)
                     {
                         var templateBitmapSource = new BitmapImage();
@@ -132,20 +161,20 @@ namespace WpfApp1
 
                         Cv2.MinMaxLoc(resultMatch, out _, out double maxVal);
 
-                        tmpResult.Add((template.ScalarColor, maxVal));
+                        tmpResult.Add((template.Puyo, maxVal));
                     }
 
                     var result = tmpResult.OrderByDescending(x => x.MaxVal).First();
-                    cells.Add((x, y, result.ScalarColor));
+                    cells.Add((x, y, result.Puyo));
                 }
             }
 
             return cells;
         }
 
-        private List<(int X, int Y, Scalar ScalarColor)> getHeaders(BitmapSource imageBitmapSourceHeaders, int headerWidth, int headerHeight)
+        private List<(int X, int Y, PuyoEnum Puyo)> getHeaders(BitmapSource imageBitmapSourceHeaders, int headerWidth, int headerHeight)
         {
-            var headers = new List<(int X, int Y, Scalar ScalarColor)>();
+            var headers = new List<(int X, int Y, PuyoEnum Puyo)>();
             for (int x = 0; x < COLS; x++)
             {
                 // トリミング
@@ -158,7 +187,7 @@ namespace WpfApp1
                 Cv2.CvtColor(headerMat, headerMat, ColorConversionCodes.BGR2HSV_FULL);
 
                 // 色に基づく物体検出
-                var tmpResult = new List<(Scalar ScalarColor, double MaxVal)>();
+                var tmpResult = new List<(PuyoEnum Puyo, double MaxVal)>();
                 foreach (var template in TemplateList)
                 {
                     if (template.TamaUri == string.Empty) continue;
@@ -179,11 +208,11 @@ namespace WpfApp1
 
                     Cv2.MinMaxLoc(resultMatch, out _, out double maxVal);
 
-                    tmpResult.Add((template.ScalarColor, maxVal));
+                    tmpResult.Add((template.Puyo, maxVal));
                 }
 
                 var result = tmpResult.OrderByDescending(x => x.MaxVal).First();
-                headers.Add((x, 0, result.ScalarColor));
+                headers.Add((x, 0, result.Puyo));
             }
 
             return headers;

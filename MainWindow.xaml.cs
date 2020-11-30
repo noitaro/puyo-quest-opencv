@@ -64,7 +64,7 @@ namespace WpfApp1
             new Position(0, 1),
             new Position(-1, 0),
             new Position(1, 0)
-        }; 
+        };
 
         private static PuyoEnum GetPuyo(PuyoEnum[,] array, Position position)
         {
@@ -106,12 +106,12 @@ namespace WpfApp1
 
             var cellWidth = cellsRect.Width / COLS; // 126
             var cellHeight = cellsRect.Height / ROWS; // 118
-            foreach ((var x, var y, var puyo) in cells)
+            foreach (var cell in cells)
             {
                 Cv2.Rectangle(imageMat,
-                    new Point(cellsRect.X + (x * cellWidth) + 5, cellsRect.Y + (y * cellHeight) + 5),
-                    new Point(cellsRect.X + (x * cellWidth) + cellWidth - 5, cellsRect.Y + (y * cellHeight) + cellHeight - 5),
-                    PuyoColors[puyo], 5, LineTypes.Link8, 0);
+                    new Point(cellsRect.X + (cell.Position.X * cellWidth) + 5, cellsRect.Y + (cell.Position.Y * cellHeight) + 5),
+                    new Point(cellsRect.X + (cell.Position.X * cellWidth) + cellWidth - 5, cellsRect.Y + (cell.Position.Y * cellHeight) + cellHeight - 5),
+                    PuyoColors[cell.Puyo], 5, LineTypes.Link8, 0);
             }
 
             var headersRect = new Int32Rect(35, 1022, 1009, 64);
@@ -122,12 +122,12 @@ namespace WpfApp1
             var imageBitmapSourceHeaders = new CroppedBitmap(imageBitmapSource, headersRect);
 
             var headers = getHeaders(imageBitmapSourceHeaders, headerWidth, headerHeight);
-            foreach ((var x, var y, var puyo) in headers)
+            foreach (var header in headers)
             {
                 Cv2.Rectangle(imageMat,
-                    new Point(headersRect.X + (x * headerWidth) + 5, headersRect.Y + (y * headerHeight) + 5),
-                    new Point(headersRect.X + (x * headerWidth) + headerWidth - 5, headersRect.Y + (y * headerHeight) + headerHeight - 5),
-                    PuyoColors[puyo], 5, LineTypes.Link8, 0);
+                    new Point(headersRect.X + (header.Position.X * headerWidth) + 5, headersRect.Y + (header.Position.Y * headerHeight) + 5),
+                    new Point(headersRect.X + (header.Position.X * headerWidth) + headerWidth - 5, headersRect.Y + (header.Position.Y * headerHeight) + headerHeight - 5),
+                    PuyoColors[header.Puyo], 5, LineTypes.Link8, 0);
             }
 
             // Image コントロールに BitmapSource 形式の画像データを設定する。
@@ -136,13 +136,13 @@ namespace WpfApp1
             // Array変換
             var headersArray = new PuyoEnum[1, COLS];
             var cellsArray = new PuyoEnum[ROWS, COLS];
-            foreach ((var x, var y, var puyo) in headers) headersArray[y, x] = puyo;
-            foreach ((var x, var y, var puyo) in cells) cellsArray[y, x] = puyo;
+            foreach (var header in headers) SetPuyo(headersArray, header.Position, header.Puyo);
+            foreach (var cell in cells) SetPuyo(cellsArray, cell.Position, cell.Puyo);
 
             return (headersArray, cellsArray);
         }
 
-        private List<(int X, int Y, PuyoEnum Puyo)> getCells(BitmapSource imageBitmapSource, Int32Rect cellsRect)
+        private List<(Position Position, PuyoEnum Puyo)> getCells(BitmapSource imageBitmapSource, Int32Rect cellsRect)
         {
             var cellWidth = cellsRect.Width / COLS; // 126
             var cellHeight = cellsRect.Height / ROWS; // 118
@@ -150,7 +150,7 @@ namespace WpfApp1
             // トリミング
             var imageBitmapSourceCells = new CroppedBitmap(imageBitmapSource, cellsRect);
 
-            var cells = new List<(int X, int Y, PuyoEnum Puyo)>();
+            var cells = new List<(Position Position, PuyoEnum Puyo)>();
             for (int x = 0; x < COLS; x++)
             {
                 for (int y = 0; y < ROWS; y++)
@@ -165,11 +165,11 @@ namespace WpfApp1
                     Cv2.CvtColor(cellMat, cellMat, ColorConversionCodes.RGB2GRAY);
 
                     var tmpResult = new List<(PuyoEnum Puyo, double MaxVal)>();
-                    foreach ((var puyo, var uri, _) in TemplateList)
+                    foreach (var template in TemplateList)
                     {
                         var templateBitmapSource = new BitmapImage();
                         templateBitmapSource.BeginInit();
-                        templateBitmapSource.UriSource = new Uri($@"template/{uri}", UriKind.Relative);
+                        templateBitmapSource.UriSource = new Uri($@"template/{template.PuyoUri}", UriKind.Relative);
                         templateBitmapSource.EndInit();
                         var templateMat = BitmapSourceConverter.ToMat(templateBitmapSource);
 
@@ -183,20 +183,20 @@ namespace WpfApp1
 
                         Cv2.MinMaxLoc(resultMatch, out _, out double maxVal);
 
-                        tmpResult.Add((puyo, maxVal));
+                        tmpResult.Add((template.Puyo, maxVal));
                     }
 
                     var result = tmpResult.OrderByDescending(x => x.MaxVal).First();
-                    cells.Add((x, y, result.Puyo));
+                    cells.Add((new Position(x, y), result.Puyo));
                 }
             }
 
             return cells;
         }
 
-        private List<(int X, int Y, PuyoEnum Puyo)> getHeaders(BitmapSource imageBitmapSourceHeaders, int headerWidth, int headerHeight)
+        private List<(Position Position, PuyoEnum Puyo)> getHeaders(BitmapSource imageBitmapSourceHeaders, int headerWidth, int headerHeight)
         {
-            var headers = new List<(int X, int Y, PuyoEnum Puyo)>();
+            var headers = new List<(Position position, PuyoEnum Puyo)>();
             for (int x = 0; x < COLS; x++)
             {
                 // トリミング
@@ -210,13 +210,13 @@ namespace WpfApp1
 
                 // 色に基づく物体検出
                 var tmpResult = new List<(PuyoEnum Puyo, double MaxVal)>();
-                foreach ((var puyo, _, var uri) in TemplateList)
+                foreach (var template in TemplateList)
                 {
-                    if (uri == string.Empty) continue;
+                    if (template.TamaUri == string.Empty) continue;
 
                     var templateBitmapSource = new BitmapImage();
                     templateBitmapSource.BeginInit();
-                    templateBitmapSource.UriSource = new Uri($@"template/{uri}", UriKind.Relative);
+                    templateBitmapSource.UriSource = new Uri($@"template/{template.TamaUri}", UriKind.Relative);
                     templateBitmapSource.EndInit();
                     var templateMat = BitmapSourceConverter.ToMat(templateBitmapSource);
 
@@ -230,11 +230,11 @@ namespace WpfApp1
 
                     Cv2.MinMaxLoc(resultMatch, out _, out double maxVal);
 
-                    tmpResult.Add((puyo, maxVal));
+                    tmpResult.Add((template.Puyo, maxVal));
                 }
 
                 var result = tmpResult.OrderByDescending(x => x.MaxVal).First();
-                headers.Add((x, 0, result.Puyo));
+                headers.Add((new Position(x, 0), result.Puyo));
             }
 
             return headers;

@@ -256,7 +256,7 @@ namespace WpfApp1
                     var tmpCellsArray = ArrayCopy(cellsArray);
 
                     // ぷよ消し
-                    //SetPuyo(tmpCellsArray, (x, y), PuyoEnum.None);
+                    SetPuyo(tmpCellsArray, new Position(x, y), PuyoEnum.None);
 
                     // 上のぷよを下に落とす
                     setPuyoDrop(tmpHeadersArray, tmpCellsArray);
@@ -315,19 +315,37 @@ namespace WpfApp1
         private int setPuyoClear(PuyoEnum[,] array)
         {
             var score = 0;
+            var scoreList = new List<(Position Position, PuyoEnum Puyo, int score)>();
 
+            //int x = 1; // デバッグ用
+            //int y = 0; // デバッグ用
             for (int x = 0; x < COLS; x++)
             {
                 for (int y = 0; y < ROWS; y++)
                 {
-                    // 自分のマスにぷよがいるか？
-                    if (GetPuyo(array, new Position(x, y)) == PuyoEnum.None) continue;
+                    var puyo = GetPuyo(array, new Position(x, y));
 
-                    // 4つ以上繋がったぷよを探す
+                    // 自分のマスにぷよがいるか？
+                    if (puyo == PuyoEnum.None) continue;
+
+                    // 繋がったぷよを探す
                     var searchedList = SearchPuyoClear(array, new List<Position>() { new Position(x, y) });
 
+                    scoreList.Add((new Position(x, y), puyo, searchedList.Count));
                 }
             }
+
+            // 一番多く消せるぷよを５個選別する
+            for (int x = 0; x < COLS; x++)
+            {
+                for (int y = 0; y < ROWS; y++)
+                {
+                    var bestScoreList = getAaaaBbbb(scoreList, new Position(x, y));
+                }
+            }
+
+
+
 
             return score;
         }
@@ -360,7 +378,7 @@ namespace WpfApp1
                     foreach (var item in result)
                     {
                         // 未探索の場合、追加
-                        if (!tmpSearchedList.Any(i => i.X == nowPosition.X && i.Y == nowPosition.Y)) tmpSearchedList.Add(item);
+                        if (!tmpSearchedList.Any(i => i.X == item.X && i.Y == item.Y)) tmpSearchedList.Add(item);
                     }
 
 

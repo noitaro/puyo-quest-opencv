@@ -21,12 +21,10 @@ namespace WpfApp1
 
             // OpenCVを使ってぷよのマス状態を取得
             var puyoPosition = pqManager.GetPuyoPosition((BitmapSource)image.Source);
-            puyoPosition.SetHeaderRect(35, 1022, 1009, 64);
-            puyoPosition.SetCellRect(35, 1086, 1009, 708);
 
             var bestScore = pqManager.getBestScore(puyoPosition.HeadersArray, puyoPosition.CellsArray);
 
-            image.Source = pqManager.ShowImageBitmapSource(puyoPosition, (BitmapSource)image.Source);
+            image.Source = pqManager.ShowImageBitmapSource((BitmapSource)image.Source);
         }
 
     }

@@ -76,7 +76,7 @@ namespace WpfApp1
             return JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(array));
         }
 
-        internal PuyoPosition GetPuyoPosition(BitmapSource imageBitmapSource)
+        internal (PuyoEnum[,] HeadersArray, PuyoEnum[,] CellsArray) GetPuyoPosition(BitmapSource imageBitmapSource)
         {
             var cellsRect = new Int32Rect(35, 1086, 1009, 708);
             var cells = getCells(imageBitmapSource, cellsRect);
@@ -91,10 +91,20 @@ namespace WpfApp1
 
             // Array変換
             var puyoPosition = new PuyoPosition();
-            puyoPosition.SetHeadersArray(headers);
-            puyoPosition.SetCellsArray(cells);
 
-            return puyoPosition;
+            var HeadersArray = new PuyoEnum[1, COLS];
+            var CellsArray = new PuyoEnum[ROWS, COLS];
+
+            foreach (var header in headers)
+            {
+                SetPuyo(HeadersArray, header.Position, header.Puyo);
+            }
+            foreach (var cell in cells)
+            {
+                SetPuyo(CellsArray, cell.Position, cell.Puyo);
+            }
+
+            return (HeadersArray, CellsArray);
         }
 
         private List<(Position Position, PuyoEnum Puyo)> getCells(BitmapSource imageBitmapSource, Int32Rect cellsRect)
@@ -403,41 +413,66 @@ namespace WpfApp1
             return tmpSearchedList;
         }
 
-        internal ImageSource ShowImageBitmapSource(PuyoPosition puyoPosition, BitmapSource imageBitmapSource)
+        internal ImageSource ShowImageBitmapSource(BitmapSource imageBitmapSource)
         {
             // ピクセルフォーマットを OpenCV の Mat 形式に変換
             var imageMat = OpenCVManager.BitmapSourceToMat(imageBitmapSource);
 
-            for (int x = 0; x < COLS; x++)
-            {
-                for (int y = 0; y < ROWS; y++)
-                {
-                    var puyoColor = puyoPosition.GetCellPuyoColor(x, y);
+            var cellsRect = new Int32Rect(35, 1086, 1009, 708);
+            var cells = getCells(imageBitmapSource, cellsRect);
 
-                    Cv2.Rectangle(imageMat,
-                        new Point(puyoPosition.CellsRect.X + (x * puyoPosition.CellWidth) + 5, 
-                                  puyoPosition.CellsRect.Y + (y * puyoPosition.CellHeight) + 5),
-                        new Point(puyoPosition.CellsRect.X + (x * puyoPosition.CellWidth) + puyoPosition.CellWidth - 5,
-                                  puyoPosition.CellsRect.Y + (y * puyoPosition.CellHeight) + puyoPosition.CellHeight - 5),
-                        puyoColor, 5, LineTypes.Link8, 0);
-                }
+            var cellWidth = cellsRect.Width / COLS; // 126
+            var cellHeight = cellsRect.Height / ROWS; // 118
+            foreach (var cell in cells)
+            {
+                Cv2.Rectangle(imageMat,
+                    new Point(cellsRect.X + (cell.Position.X * cellWidth) + 5, cellsRect.Y + (cell.Position.Y * cellHeight) + 5),
+                    new Point(cellsRect.X + (cell.Position.X * cellWidth) + cellWidth - 5, cellsRect.Y + (cell.Position.Y * cellHeight) + cellHeight - 5),
+                    PuyoColors[cell.Puyo], 5, LineTypes.Link8, 0);
             }
 
-            for (int x = 0; x < COLS; x++)
-            {
-                var puyoColor = puyoPosition.GetHeaderPuyoColor(x, 0);
+            var headersRect = new Int32Rect(35, 1022, 1009, 64);
+            var headerWidth = headersRect.Width / COLS; // 126
+            var headerHeight = headersRect.Height; // 64
 
+            // トリミング
+            var imageBitmapSourceHeaders = new CroppedBitmap(imageBitmapSource, headersRect);
+
+            var headers = getHeaders(imageBitmapSourceHeaders, headerWidth, headerHeight);
+            foreach (var header in headers)
+            {
                 Cv2.Rectangle(imageMat,
-                    new Point(puyoPosition.HeadersRect.X + (x * puyoPosition.HeaderWidth) + 5, 
-                              puyoPosition.HeadersRect.Y + (0 * puyoPosition.HeaderHeight) + 5),
-                    new Point(puyoPosition.HeadersRect.X + (x * puyoPosition.HeaderWidth) + puyoPosition.HeaderWidth - 5, 
-                              puyoPosition.HeadersRect.Y + (0 * puyoPosition.HeaderHeight) + puyoPosition.HeaderHeight - 5),
-                    puyoColor, 5, LineTypes.Link8, 0);
+                    new Point(headersRect.X + (header.Position.X * headerWidth) + 5, headersRect.Y + (header.Position.Y * headerHeight) + 5),
+                    new Point(headersRect.X + (header.Position.X * headerWidth) + headerWidth - 5, headersRect.Y + (header.Position.Y * headerHeight) + headerHeight - 5),
+                    PuyoColors[header.Puyo], 5, LineTypes.Link8, 0);
             }
 
             // Image コントロールに BitmapSource 形式の画像データを設定する。
             return BitmapSourceConverter.ToBitmapSource(imageMat);
 
+        }
+
+        internal PuyoEnum[,] HeadersArray { get; set; }
+        internal PuyoEnum[,] CellsArray { get; set; }
+        public Int32Rect CellsRect { get; set; }
+        public int CellWidth { get; set; }
+        public int CellHeight { get; set; }
+        public Int32Rect HeadersRect { get; set; }
+        public int HeaderWidth { get; set; }
+        public int HeaderHeight { get; set; }
+
+        internal void SetHeaderRect(int x, int y, int width, int height)
+        {
+            HeadersRect = new Int32Rect(35, 1022, 1009, 64);
+            HeaderWidth = HeadersRect.Width / COLS; // 126
+            HeaderHeight = HeadersRect.Height; // 64
+        }
+
+        internal void SetCellRect(int x, int y, int width, int height)
+        {
+            CellsRect = new Int32Rect(35, 1086, 1009, 708);
+            CellWidth = CellsRect.Width / COLS; // 126
+            CellHeight = CellsRect.Height / ROWS; // 118
         }
 
     }

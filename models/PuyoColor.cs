@@ -1,6 +1,6 @@
 ﻿namespace WpfApp1.models
 {
-    internal enum PuyoEnum
+    public enum PuyoColor
     {
         None,
         Red,

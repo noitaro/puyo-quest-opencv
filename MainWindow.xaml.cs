@@ -1,5 +1,4 @@
-﻿using OpenCvSharp;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Media.Imaging;
 using Window = System.Windows.Window;
 
@@ -20,11 +19,15 @@ namespace WpfApp1
             var pqManager = new PuyoQuestManager();
 
             // OpenCVを使ってぷよのマス状態を取得
-            var puyoPosition = pqManager.GetPuyoPosition((BitmapSource)image.Source);
+            var imageBitmapSource = (BitmapSource)image.Source;
+            var cellsArray = pqManager.getCells(imageBitmapSource);
+            var headersArray = pqManager.getHeaders(imageBitmapSource);
 
-            var bestScore = pqManager.getBestScore(puyoPosition.HeadersArray, puyoPosition.CellsArray);
+            //var bestScore = pqManager.getBestScore(headersArray, cellsArray);
 
-            image.Source = pqManager.ShowImageBitmapSource((BitmapSource)image.Source);
+            cellsArray = pqManager.getConnectCount(cellsArray);
+
+            image.Source = pqManager.ShowImageBitmapSource(imageBitmapSource, headersArray, cellsArray);
         }
 
     }

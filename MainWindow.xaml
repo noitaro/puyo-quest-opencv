@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        <Image Name="image" Source="/Screenshot_20201129-191422.png" Margin="5,5,5,5"/>
+        <Image Name="image" Source="/Screenshot_20201129-191506.png" Margin="5,5,5,5"/>
         <Button Content="テンプレートマッチング" Width="100" Height="50" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5,5,0,0" Click="Button_Click"/>
     </Grid>
 </Window>

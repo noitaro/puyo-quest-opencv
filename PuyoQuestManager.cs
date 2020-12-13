@@ -14,8 +14,8 @@ namespace WpfApp1
 {
     public class PuyoQuestManager
     {
-        const int COLS = 8;
-        const int ROWS = 6;
+        public const int COLS = 8;
+        public const int ROWS = 6;
 
         private static readonly Int32Rect CellsRect = new Int32Rect(35, 1086, 1009, 708);
         private static readonly Int32Rect HeadersRect = new Int32Rect(35, 1022, 1009, 64);
@@ -27,7 +27,7 @@ namespace WpfApp1
 
         private static readonly int HeaderHeight = HeadersRect.Height; // 64
 
-        private static readonly Dictionary<PuyoColor, Scalar> PuyoColors = new()
+        public static readonly Dictionary<PuyoColor, Scalar> PuyoColors = new()
         {
             { PuyoColor.Red, Scalar.Red },
             { PuyoColor.Blue, Scalar.Blue },
@@ -86,7 +86,7 @@ namespace WpfApp1
             return JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(array));
         }
 
-        public Puyo[,] getCells(BitmapSource imageBitmapSource)
+        public static Puyo[,] GetCells(BitmapSource imageBitmapSource)
         {
             // トリミング
             var imageBitmapSourceCells = new CroppedBitmap(imageBitmapSource, CellsRect);
@@ -136,7 +136,7 @@ namespace WpfApp1
             return CellsArray;
         }
 
-        public Puyo[,] getHeaders(BitmapSource imageBitmapSource)
+        public static Puyo[,] GetHeaders(BitmapSource imageBitmapSource)
         {
             var headersArray = new Puyo[1, COLS];
 
@@ -186,7 +186,7 @@ namespace WpfApp1
             return headersArray;
         }
 
-        internal Puyo[,] getBestScore(Puyo[,] headersArray, Puyo[,] cellsArray)
+        internal Puyo[,] GetBestScore(Puyo[,] headersArray, Puyo[,] cellsArray)
         {
             var scores = new List<(List<Position> pos, int score)>();
             scores.Add((new List<Position>() { new Position(0, 0), new Position(0, 1), new Position(0, 2), new Position(0, 3), new Position(0, 4) }, 0));
@@ -208,7 +208,7 @@ namespace WpfApp1
                     //setPuyoDrop(tmpHeadersArray, tmpCellsArray);
 
                     // 4つ以上繋がったぷよを消す
-                    var score = setPuyoClear(tmpCellsArray);
+                    var score = SetPuyoClear(tmpCellsArray);
                     if (score != 0)
                     {
 
@@ -223,7 +223,7 @@ namespace WpfApp1
             return tmpCellsArray;
         }
 
-        private void setPuyoDrop(Puyo[,] tmpHeadersArray, Puyo[,] tmpCellsArray)
+        private void SetPuyoDrop(Puyo[,] tmpHeadersArray, Puyo[,] tmpCellsArray)
         {
             for (int x = 0; x < COLS; x++)
             {
@@ -258,7 +258,7 @@ namespace WpfApp1
             }
         }
 
-        private int setPuyoClear(Puyo[,] array)
+        private int SetPuyoClear(Puyo[,] array)
         {
             var puyoScores = new List<(Position Position, PuyoColor Color, int Score)>();
 
@@ -286,7 +286,7 @@ namespace WpfApp1
             {
                 for (int y = 0; y < ROWS; y++)
                 {
-                    var positions = getBestScorePositions(puyoScores, 1, new Position(x, y));
+                    var positions = GetBestScorePositions(puyoScores, 1, new Position(x, y));
 
                     // スコアを求める
                     var score = positions.Sum(pos => GetPuyo(puyoScores, pos).Score);
@@ -306,8 +306,7 @@ namespace WpfApp1
             return 0;
         }
 
-        private List<Position> getBestScorePositions
-            (List<(Position Position, PuyoColor Color, int Score)> puyoScores, int depth, Position position)
+        private List<Position> GetBestScorePositions(List<(Position Position, PuyoColor Color, int Score)> puyoScores, int depth, Position position)
         {
             // 終点
             if (depth >= 5)
@@ -332,7 +331,7 @@ namespace WpfApp1
                     if (GetPuyo(puyoScores, nowPosition).Color == PuyoColor.None) continue;
 
                     // 上下左右斜めの8方向を探索
-                    var positions = getBestScorePositions(puyoScores, depth + 1, nowPosition);
+                    var positions = GetBestScorePositions(puyoScores, depth + 1, nowPosition);
 
                     // 未探索の場合、追加
                     if (!positions.Any(i => i.X == nowPosition.X && i.Y == nowPosition.Y)) positions.Add(nowPosition);
@@ -384,7 +383,7 @@ namespace WpfApp1
                     // 同色の場合
                     positions.Add(nowPosition);
 
-                    // 再起処理
+                    // 再帰処理
                     var result = SearchConnectedPuyos(array, positions);
                     foreach (var item in result)
                     {
@@ -396,11 +395,11 @@ namespace WpfApp1
                 }
             }
 
-            // 同色のぷよが見つからなかった場合、再起処理を抜ける
+            // 同色のぷよが見つからなかった場合、再帰処理を抜ける
             return positions;
         }
 
-        internal ImageSource ShowImageBitmapSource(BitmapSource imageBitmapSource, Puyo[,] headersArray, Puyo[,] cellsArray)
+        internal static BitmapSource DrawPuyoColor(BitmapSource imageBitmapSource, Puyo[,] headersArray, Puyo[,] cellsArray)
         {
             // ピクセルフォーマットを OpenCV の Mat 形式に変換
             var imageMat = OpenCVManager.BitmapSourceToMat(imageBitmapSource);
@@ -414,10 +413,6 @@ namespace WpfApp1
                     var pt1 = new Point(CellsRect.X + (x * CellWidth) + 5, CellsRect.Y + (y * CellHeight) + 5);
                     var pt2 = new Point(CellsRect.X + (x * CellWidth) + CellWidth - 5, CellsRect.Y + (y * CellHeight) + CellHeight - 5);
                     Cv2.Rectangle(imageMat, pt1, pt2, PuyoColors[puyo.Color], 5, LineTypes.Link8, 0);
-                    Cv2.PutText(imageMat, Convert.ToString(puyo.Count), new Point(pt1.X + 80, pt1.Y + 100),
-                        HersheyFonts.HersheyPlain, 4, PuyoColors[puyo.Color] == Scalar.Yellow ? Scalar.Gray : Scalar.White, 15);
-                    Cv2.PutText(imageMat, Convert.ToString(puyo.Count), new Point(pt1.X + 80, pt1.Y + 100),
-                        HersheyFonts.HersheyPlain, 4, PuyoColors[puyo.Color], 5);
                 }
             }
 
@@ -433,7 +428,7 @@ namespace WpfApp1
             return BitmapSourceConverter.ToBitmapSource(imageMat);
         }
 
-        internal Puyo[,] getConnectCount(Puyo[,] cellsArray)
+        internal Puyo[,] GetConnectCount(Puyo[,] cellsArray)
         {
             // 配列コピー
             var array = ArrayCopy(cellsArray);
@@ -456,6 +451,123 @@ namespace WpfApp1
                 }
             }
             return array;
+        }
+
+        internal static BitmapSource DrawConnectCount(BitmapSource imageBitmapSource, Puyo[,] cellsArray)
+        {
+            // ピクセルフォーマットを OpenCV の Mat 形式に変換
+            var imageMat = OpenCVManager.BitmapSourceToMat(imageBitmapSource);
+
+            for (var x = 0; x < COLS; x++)
+            {
+                for (var y = 0; y < ROWS; y++)
+                {
+                    var puyo = GetPuyo(cellsArray, new Position(x, y));
+
+                    var pt = new Point(CellsRect.X + (x * CellWidth) + 5 + 80, CellsRect.Y + (y * CellHeight) + 5 + 100);
+                    Cv2.PutText(imageMat, Convert.ToString(puyo.Count), pt,
+                        HersheyFonts.HersheyPlain, 4, PuyoColors[puyo.Color] == Scalar.Yellow ? Scalar.Gray : Scalar.White, 15);
+                    Cv2.PutText(imageMat, Convert.ToString(puyo.Count), pt,
+                        HersheyFonts.HersheyPlain, 4, PuyoColors[puyo.Color], 5);
+                }
+            }
+
+            // Image コントロールに BitmapSource 形式の画像データを設定する。
+            return BitmapSourceConverter.ToBitmapSource(imageMat);
+        }
+
+        internal List<Position> GetBestScore(Puyo[,] cellsArray)
+        {
+            var bestScore = 0;
+            var connectedPosition = new List<Position>();
+
+            // 一番多く消せるぷよを５個選別する
+            for (int x = 0; x < COLS; x++)
+            {
+                for (int y = 0; y < ROWS; y++)
+                {
+                    var positions = GetFiveConnected(cellsArray, 1, new Position(x, y));
+
+                    // スコアを求める
+                    var score = positions.Sum(pos => GetPuyo(cellsArray, pos).Count);
+
+                    // 一番高いスコアを保持
+                    if (bestScore < score)
+                    {
+                        bestScore = score;
+                        connectedPosition = ArrayCopy(positions);
+                    }
+                }
+            }
+
+            return connectedPosition;
+        }
+
+        private List<Position> GetFiveConnected(Puyo[,] cellsArray, int depth, Position position)
+        {
+            // 終点
+            if (depth >= 5)
+            {
+                return new List<Position>() { position };
+            }
+
+            // 配列コピー
+            var tmpScorePositions = new List<Position>();
+            var bestScore = 0;
+            var connectedPosition = new List<Position>();
+
+            for (int x = -1; x <= 1; x++)
+            {
+                for (int y = -1; y <= 1; y++)
+                {
+                    if (x == 0 && y == 0) continue;
+
+                    // 今回探索位置取得
+                    var nowPosition = new Position(position.X + x, position.Y + y);
+                    // ぷよがあるか？
+                    if (GetPuyo(cellsArray, nowPosition).Color == PuyoColor.None) continue;
+
+                    // 上下左右斜めの8方向を探索
+                    var positions = GetFiveConnected(cellsArray, depth + 1, nowPosition);
+
+                    // 未探索の場合、追加
+                    if (!positions.Any(i => i.X == nowPosition.X && i.Y == nowPosition.Y)) positions.Add(nowPosition);
+                    // 呼び出し元も追加
+                    if (!positions.Any(i => i.X == position.X && i.Y == position.Y)) positions.Add(position);
+
+                    // スコアを求める
+                    var score = positions.Sum(pos => GetPuyo(cellsArray, pos).Count);
+                    // 一番高いスコアを保持
+                    if (bestScore < score)
+                    {
+                        bestScore = score;
+                        connectedPosition = ArrayCopy(positions);
+                    }
+
+
+                }
+            }
+
+            return connectedPosition;
+        }
+
+        internal static BitmapSource DrawBestScore(BitmapSource imageBitmapSource, List<Position> bestScorePosition)
+        {
+            // ピクセルフォーマットを OpenCV の Mat 形式に変換
+            var imageMat = OpenCVManager.BitmapSourceToMat(imageBitmapSource);
+
+            var cnt = 1;
+            foreach (var position in bestScorePosition)
+            {
+                var pt = new Point(CellsRect.X + (position.X * CellWidth) + 62, CellsRect.Y + (position.Y * CellHeight) + 60);
+                Cv2.Circle(imageMat, pt.X, pt.Y, 30, Scalar.Magenta, -1, LineTypes.Link8, 0);
+                Cv2.PutText(imageMat, Convert.ToString(cnt), new Point(pt.X - 14, pt.Y + 14), HersheyFonts.HersheyPlain, 3, Scalar.Black, 4);
+
+                cnt++;
+            }
+
+            // Image コントロールに BitmapSource 形式の画像データを設定する。
+            return BitmapSourceConverter.ToBitmapSource(imageMat);
         }
 
     }

@@ -9,5 +9,73 @@
     <Grid>
         <Image Name="image" Source="/Screenshot_20201129-191506.png" Margin="5,5,5,5"/>
         <Button Content="テンプレートマッチング" Width="100" Height="50" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5,5,0,0" Click="Button_Click"/>
+        <Grid HorizontalAlignment="Left" Width="250" Margin="0,80,0,0" Height="200" VerticalAlignment="Top">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Button x:Name="btn_0_0" Grid.Column="0" Grid.Row="0" Margin="2" Click="Button_Click_1" Tag="0,0"/>
+            <Button x:Name="btn_0_1" Grid.Column="0" Grid.Row="1" Margin="2" Click="Button_Click_1" Tag="0,1"/>
+            <Button x:Name="btn_0_2" Grid.Column="0" Grid.Row="2" Margin="2" Click="Button_Click_1" Tag="0,2"/>
+            <Button x:Name="btn_0_3" Grid.Column="0" Grid.Row="3" Margin="2" Click="Button_Click_1" Tag="0,3"/>
+            <Button x:Name="btn_0_4" Grid.Column="0" Grid.Row="4" Margin="2" Click="Button_Click_1" Tag="0,4"/>
+            <Button x:Name="btn_0_5" Grid.Column="0" Grid.Row="5" Margin="2" Click="Button_Click_1" Tag="0,5"/>
+            <Button x:Name="btn_1_0" Grid.Column="1" Grid.Row="0" Margin="2" Click="Button_Click_1" Tag="1,0"/>
+            <Button x:Name="btn_1_1" Grid.Column="1" Grid.Row="1" Margin="2" Click="Button_Click_1" Tag="1,1"/>
+            <Button x:Name="btn_1_2" Grid.Column="1" Grid.Row="2" Margin="2" Click="Button_Click_1" Tag="1,2"/>
+            <Button x:Name="btn_1_3" Grid.Column="1" Grid.Row="3" Margin="2" Click="Button_Click_1" Tag="1,3"/>
+            <Button x:Name="btn_1_4" Grid.Column="1" Grid.Row="4" Margin="2" Click="Button_Click_1" Tag="1,4"/>
+            <Button x:Name="btn_1_5" Grid.Column="1" Grid.Row="5" Margin="2" Click="Button_Click_1" Tag="1,5"/>
+            <Button x:Name="btn_2_0" Grid.Column="2" Grid.Row="0" Margin="2" Click="Button_Click_1" Tag="2,0"/>
+            <Button x:Name="btn_2_1" Grid.Column="2" Grid.Row="1" Margin="2" Click="Button_Click_1" Tag="2,1"/>
+            <Button x:Name="btn_2_2" Grid.Column="2" Grid.Row="2" Margin="2" Click="Button_Click_1" Tag="2,2"/>
+            <Button x:Name="btn_2_3" Grid.Column="2" Grid.Row="3" Margin="2" Click="Button_Click_1" Tag="2,3"/>
+            <Button x:Name="btn_2_4" Grid.Column="2" Grid.Row="4" Margin="2" Click="Button_Click_1" Tag="2,4"/>
+            <Button x:Name="btn_2_5" Grid.Column="2" Grid.Row="5" Margin="2" Click="Button_Click_1" Tag="2,5"/>
+            <Button x:Name="btn_3_0" Grid.Column="3" Grid.Row="0" Margin="2" Click="Button_Click_1" Tag="3,0"/>
+            <Button x:Name="btn_3_1" Grid.Column="3" Grid.Row="1" Margin="2" Click="Button_Click_1" Tag="3,1"/>
+            <Button x:Name="btn_3_2" Grid.Column="3" Grid.Row="2" Margin="2" Click="Button_Click_1" Tag="3,2"/>
+            <Button x:Name="btn_3_3" Grid.Column="3" Grid.Row="3" Margin="2" Click="Button_Click_1" Tag="3,3"/>
+            <Button x:Name="btn_3_4" Grid.Column="3" Grid.Row="4" Margin="2" Click="Button_Click_1" Tag="3,4"/>
+            <Button x:Name="btn_3_5" Grid.Column="3" Grid.Row="5" Margin="2" Click="Button_Click_1" Tag="3,5"/>
+            <Button x:Name="btn_4_0" Grid.Column="4" Grid.Row="0" Margin="2" Click="Button_Click_1" Tag="4,0"/>
+            <Button x:Name="btn_4_1" Grid.Column="4" Grid.Row="1" Margin="2" Click="Button_Click_1" Tag="4,1"/>
+            <Button x:Name="btn_4_2" Grid.Column="4" Grid.Row="2" Margin="2" Click="Button_Click_1" Tag="4,2"/>
+            <Button x:Name="btn_4_3" Grid.Column="4" Grid.Row="3" Margin="2" Click="Button_Click_1" Tag="4,3"/>
+            <Button x:Name="btn_4_4" Grid.Column="4" Grid.Row="4" Margin="2" Click="Button_Click_1" Tag="4,4"/>
+            <Button x:Name="btn_4_5" Grid.Column="4" Grid.Row="5" Margin="2" Click="Button_Click_1" Tag="4,5"/>
+            <Button x:Name="btn_5_0" Grid.Column="5" Grid.Row="0" Margin="2" Click="Button_Click_1" Tag="5,0"/>
+            <Button x:Name="btn_5_1" Grid.Column="5" Grid.Row="1" Margin="2" Click="Button_Click_1" Tag="5,1"/>
+            <Button x:Name="btn_5_2" Grid.Column="5" Grid.Row="2" Margin="2" Click="Button_Click_1" Tag="5,2"/>
+            <Button x:Name="btn_5_3" Grid.Column="5" Grid.Row="3" Margin="2" Click="Button_Click_1" Tag="5,3"/>
+            <Button x:Name="btn_5_4" Grid.Column="5" Grid.Row="4" Margin="2" Click="Button_Click_1" Tag="5,4"/>
+            <Button x:Name="btn_5_5" Grid.Column="5" Grid.Row="5" Margin="2" Click="Button_Click_1" Tag="5,5"/>
+            <Button x:Name="btn_6_0" Grid.Column="6" Grid.Row="0" Margin="2" Click="Button_Click_1" Tag="6,0"/>
+            <Button x:Name="btn_6_1" Grid.Column="6" Grid.Row="1" Margin="2" Click="Button_Click_1" Tag="6,1"/>
+            <Button x:Name="btn_6_2" Grid.Column="6" Grid.Row="2" Margin="2" Click="Button_Click_1" Tag="6,2"/>
+            <Button x:Name="btn_6_3" Grid.Column="6" Grid.Row="3" Margin="2" Click="Button_Click_1" Tag="6,3"/>
+            <Button x:Name="btn_6_4" Grid.Column="6" Grid.Row="4" Margin="2" Click="Button_Click_1" Tag="6,4"/>
+            <Button x:Name="btn_6_5" Grid.Column="6" Grid.Row="5" Margin="2" Click="Button_Click_1" Tag="6,5"/>
+            <Button x:Name="btn_7_0" Grid.Column="7" Grid.Row="0" Margin="2" Click="Button_Click_1" Tag="7,0"/>
+            <Button x:Name="btn_7_1" Grid.Column="7" Grid.Row="1" Margin="2" Click="Button_Click_1" Tag="7,1"/>
+            <Button x:Name="btn_7_2" Grid.Column="7" Grid.Row="2" Margin="2" Click="Button_Click_1" Tag="7,2"/>
+            <Button x:Name="btn_7_3" Grid.Column="7" Grid.Row="3" Margin="2" Click="Button_Click_1" Tag="7,3"/>
+            <Button x:Name="btn_7_4" Grid.Column="7" Grid.Row="4" Margin="2" Click="Button_Click_1" Tag="7,4"/>
+            <Button x:Name="btn_7_5" Grid.Column="7" Grid.Row="5" Margin="2" Click="Button_Click_1" Tag="7,5"/>
+        </Grid>
     </Grid>
 </Window>
